@@ -2,7 +2,7 @@
 const utils = require("./utils");
 
 /**
- * 
+ *
  * @param {utils.NodeData} node_data The node data to generate the chapter metadata from
  * @returns {utils.StoryMetadata} the story metadata
  */
@@ -11,11 +11,15 @@ function get_story_metadata_from_node_data(node_data) {
   const extras = [];
   for (const chapter of node_data.bm) {
     const is_special_chapter = chapter.title.startsWith("#special ");
-    const title = is_special_chapter ? chapter.title.substring("#special ".length) : chapter.title;
+    const title = is_special_chapter
+      ? chapter.title.substring("#special ".length)
+      : chapter.title;
     const chapter_data = {
       title: title,
       raw_file_name: `chapter_${chapter.id}`,
-      output_file_name: is_special_chapter ? `appendix${extras.length + 1}` : `ch${chapters.length + 1}`,
+      output_file_name: is_special_chapter
+        ? `appendix${extras.length + 1}`
+        : `ch${chapters.length + 1}`,
       is_appendix: is_special_chapter,
     };
     if (is_special_chapter) {
@@ -40,7 +44,8 @@ function create_html_fragments_from_chapter(chapter_data, options) {
   options = options || { include_polls: false, include_writeins: false };
   let fragments = [];
   for (const entry of chapter_data) {
-    if (entry.t && entry.t.startsWith("#special") && chapter_data.length > 1) continue;
+    if (entry.t && entry.t.startsWith("#special") && chapter_data.length > 1)
+      continue;
     if (entry.nt === "chapter") {
       fragments.push(entry.b);
       continue;
@@ -57,15 +62,22 @@ function create_html_fragments_from_chapter(chapter_data, options) {
       continue;
     }
     if (entry.nt === "choice" && entry.votes && options.include_polls) {
-      const choices = entry.choices.map(choice => ({ text: choice, votes: 0 }));
+      const choices = entry.choices.map((choice) => ({
+        text: choice,
+        votes: 0,
+      }));
       if (entry.multiple) {
-        for (const vote_list of Object.values(entry.votes).concat(Object.values(entry.userVotes || {}))) {
+        for (const vote_list of Object.values(entry.votes).concat(
+          Object.values(entry.userVotes || {})
+        )) {
           for (const vote of vote_list) {
             choices[vote].votes++;
           }
         }
       } else if (!entry.multiple) {
-        for (const vote of Object.values(entry.votes).concat(Object.values(entry.userVotes || {}))) {
+        for (const vote of Object.values(entry.votes).concat(
+          Object.values(entry.userVotes || {})
+        )) {
           choices[vote].votes++;
         }
       }
@@ -73,9 +85,9 @@ function create_html_fragments_from_chapter(chapter_data, options) {
       let result = `<h3>Poll:</h3>\n`;
       result += "<ul>\n";
       for (let index = 0; index < choices.length; index++) {
-        const choice = choices[index];;
+        const choice = choices[index];
         if (choice.text === "permanentlyRemoved") continue;
-        if (entry.xOut && entry.xOut.some(s => s === `${index}`)) {
+        if (entry.xOut && entry.xOut.some((s) => s === `${index}`)) {
           result += `<li><span style="text-decoration: line-through;">${choice.text}</span> (${choice.votes} votes)</li>\n`;
         } else {
           result += `<li>${choice.text} (${choice.votes} votes)</li>\n`;
@@ -95,16 +107,26 @@ function create_html_fragments_from_chapter(chapter_data, options) {
  * @param {{ show_output?: boolean, include_polls?: boolean, include_writeins?: boolean }} [options] The options for generating the contents
  */
 module.exports.analyze_story_data = async function (folder_name, options) {
-  options = options || { show_output: false, include_polls: false, include_writeins: false };
+  options = options || {
+    show_output: false,
+    include_polls: false,
+    include_writeins: false,
+  };
 
   const raw_directory_path = `${utils.paths.download}/${folder_name}`;
-  const node_data = await utils.read_json_file(`${raw_directory_path}/node.json`);
+  const node_data = await utils.read_json_file(
+    `${raw_directory_path}/node.json`
+  );
   const story_metadata = get_story_metadata_from_node_data(node_data);
   if (options.show_output)
-    console.log(`${folder_name} - Found data for ${story_metadata.chapter_metadata.length} chapters`);
+    console.log(
+      `${folder_name} - Found data for ${story_metadata.chapter_metadata.length} chapters`
+    );
 
   await utils.ensure_directory(utils.paths.analyze);
-  await utils.delete_file_if_exists(`${utils.paths.analyze}/${folder_name}.json`);
+  await utils.delete_file_if_exists(
+    `${utils.paths.analyze}/${folder_name}.json`
+  );
 
   /** @type {utils.StoryData} */
   const story_data = {
@@ -115,10 +137,21 @@ module.exports.analyze_story_data = async function (folder_name, options) {
   for (let index = 0; index < story_metadata.chapter_metadata.length; index++) {
     const chapter_metadata = story_metadata.chapter_metadata[index];
     /** @type {utils.NodeChapterDataList} */
-    const raw_chapter_data = await utils.read_json_file(`${raw_directory_path}/${chapter_metadata.raw_file_name}.json`);
-    const html_fragments = create_html_fragments_from_chapter(raw_chapter_data, options);
-    const previous_file = index > 0 ? story_metadata.chapter_metadata[index - 1].output_file_name : "index";
-    const next_file = index < story_metadata.chapter_metadata.length - 1 ? story_metadata.chapter_metadata[index + 1].output_file_name : "index";
+    const raw_chapter_data = await utils.read_json_file(
+      `${raw_directory_path}/${chapter_metadata.raw_file_name}.json`
+    );
+    const html_fragments = create_html_fragments_from_chapter(
+      raw_chapter_data,
+      options
+    );
+    const previous_file =
+      index > 0
+        ? story_metadata.chapter_metadata[index - 1].output_file_name
+        : "index";
+    const next_file =
+      index < story_metadata.chapter_metadata.length - 1
+        ? story_metadata.chapter_metadata[index + 1].output_file_name
+        : "index";
     story_data.chapters.push({
       title: chapter_metadata.title,
       is_appendix: chapter_metadata.is_appendix,
@@ -129,8 +162,13 @@ module.exports.analyze_story_data = async function (folder_name, options) {
       fragments: html_fragments,
     });
     if (options.show_output)
-      console.log(`${folder_name} - Created ${html_fragments.length} fragments for chapter ${chapter_metadata.title}`)
+      console.log(
+        `${folder_name} - Created ${html_fragments.length} fragments for chapter ${chapter_metadata.title}`
+      );
   }
 
-  await utils.write_json_file(`${utils.paths.analyze}/${folder_name}.json`, story_data);
-}
+  await utils.write_json_file(
+    `${utils.paths.analyze}/${folder_name}.json`,
+    story_data
+  );
+};

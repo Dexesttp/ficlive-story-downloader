@@ -1,6 +1,6 @@
 //@ts-check
 const fs = require("fs");
-const https = require('https');
+const https = require("https");
 
 /**
  * Define the type of things that we retrieve from fiction.live
@@ -43,7 +43,7 @@ module.exports.paths = {
  * Wait the given number of milliseconds
  * @param {number} milliseconds The default number of milliseconds to randomly wait for
  * @param {number} [jitter_millseconds] The max number of milliseconds to wait on top of the default number. The actual wait will be random between this value and the max
- * @returns 
+ * @returns {Promise<void>} A promise that gets resolved when the timeout is over
  */
 module.exports.wait_for_timeout = function (milliseconds, jitter_millseconds) {
   jitter_millseconds = jitter_millseconds || 0;
@@ -52,8 +52,7 @@ module.exports.wait_for_timeout = function (milliseconds, jitter_millseconds) {
       resolve();
     }, milliseconds + Math.floor(Math.random() * jitter_millseconds));
   });
-}
-
+};
 
 /**
  * Checks if the given file exists
@@ -68,9 +67,9 @@ module.exports.check_if_file_exists = function (file_name) {
         return;
       }
       resolve(true);
-    })
+    });
   });
-}
+};
 
 /**
  * Deletes the given file if it exists
@@ -90,10 +89,10 @@ module.exports.delete_file_if_exists = function (file_name) {
           return;
         }
         resolve();
-      })
-    })
+      });
+    });
   });
-}
+};
 
 /**
  * Read a raw file from a given path
@@ -108,9 +107,9 @@ module.exports.read_raw_file = function (file_name) {
         return;
       }
       resolve(data);
-    })
+    });
   });
-}
+};
 
 /**
  * Read a JSON file from a given path
@@ -125,9 +124,9 @@ module.exports.read_json_file = function (file_name) {
         return;
       }
       resolve(JSON.parse(data.toString()));
-    })
+    });
   });
-}
+};
 
 /**
  * Writes some raw data into a file
@@ -145,7 +144,7 @@ module.exports.write_raw_file = function (file_name, text) {
       resolve();
     });
   });
-}
+};
 /**
  * Writes some JSON data into a file
  * @param {string} file_name The name of the file to write to
@@ -154,7 +153,7 @@ module.exports.write_raw_file = function (file_name, text) {
  */
 module.exports.write_json_file = async function (file_name, data) {
   await module.exports.write_raw_file(file_name, JSON.stringify(data, null, 2));
-}
+};
 
 /**
  * Ensures that the given directory exists
@@ -177,7 +176,7 @@ module.exports.ensure_directory = function (path) {
       resolve();
     });
   });
-}
+};
 
 /**
  * Delete the given directory if it exists
@@ -197,10 +196,10 @@ module.exports.delete_directory_if_exists = function (directory_path) {
           return;
         }
         resolve();
-      })
-    })
+      });
+    });
   });
-}
+};
 
 /**
  * Download some raw data from a HTTPS url
@@ -224,11 +223,13 @@ module.exports.download_raw_data_to_file = function (url, file_path) {
       });
     });
     request.on("error", (e) => {
-      fs.unlink(file_path, () => { /* Ignored */ });
+      fs.unlink(file_path, () => {
+        /* Ignored */
+      });
       reject(e);
     });
   });
-}
+};
 
 /**
  * Download some JSON data from a HTTPS url
@@ -244,7 +245,7 @@ module.exports.download_json_data = function (url) {
       }
 
       let data = "";
-      res.on("data", (d) => data += d);
+      res.on("data", (d) => (data += d));
       res.on("end", () => {
         try {
           resolve(JSON.parse(data));
@@ -257,12 +258,16 @@ module.exports.download_json_data = function (url) {
       });
     });
   });
-}
+};
 
 module.exports.generate_guid = function () {
   function replacement_method(character) {
-    var r = Math.random() * 16 | 0, v = character == 'x' ? r : (r & 0x3 | 0x8);
+    var r = (Math.random() * 16) | 0,
+      v = character == "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, replacement_method);
-}
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+    /[xy]/g,
+    replacement_method
+  );
+};

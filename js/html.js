@@ -7,8 +7,14 @@ const utils = require("./utils");
  * @returns {string} The generated HTML
  */
 function generate_full_index_html_from_chapter_metadata(story_data) {
-  const chapters = story_data.chapters.filter(m => !m.is_appendix).map(m => `<a href="${m.output_file_name}.html">${m.title}</a>`).join("<br />");
-  const appendixes = story_data.chapters.filter(m => m.is_appendix).map(m => `<a href="${m.output_file_name}.html">${m.title}</a>`).join("<br />");
+  const chapters = story_data.chapters
+    .filter((m) => !m.is_appendix)
+    .map((m) => `<a href="${m.output_file_name}.html">${m.title}</a>`)
+    .join("<br />");
+  const appendixes = story_data.chapters
+    .filter((m) => m.is_appendix)
+    .map((m) => `<a href="${m.output_file_name}.html">${m.title}</a>`)
+    .join("<br />");
   return `<!DOCTYPE html>
 <html>
     <head>
@@ -95,7 +101,9 @@ function generate_full_chapter_html_from_chapter_fragments(chapter) {
         </nav>
         <article>
             <h2>${chapter.title}</h2>
-            ${chapter.fragments.map(f => `<section>${f}</section>`).join("\n")}
+            ${chapter.fragments
+              .map((f) => `<section>${f}</section>`)
+              .join("\n")}
         </article>
         <nav class="chapter_navigation">
             <a href="${chapter.previous_file}.html">&lt; Previous</a>
@@ -110,11 +118,16 @@ function generate_full_chapter_html_from_chapter_fragments(chapter) {
  * @param {string} folder_name The short name of the story to generate HTML for (used for file and folder names)
  * @param {{ show_output: boolean }} options The options to use
  */
-module.exports.generate_html_for_story_data = async function (folder_name, options) {
+module.exports.generate_html_for_story_data = async function (
+  folder_name,
+  options
+) {
   options = options || { show_output: false };
 
   /** @type {utils.StoryDataWithImages} */
-  const story_data = await utils.read_json_file(`${utils.paths.images}/${folder_name}.json`);
+  const story_data = await utils.read_json_file(
+    `${utils.paths.images}/${folder_name}.json`
+  );
 
   const output_directory_path = `${utils.paths.output}/${folder_name}`;
   await utils.ensure_directory(output_directory_path);
@@ -125,10 +138,18 @@ module.exports.generate_html_for_story_data = async function (folder_name, optio
     console.log(`Creating ${output_directory_path}/index.html`);
   await utils.write_raw_file(`${output_directory_path}/index.html`, index_html);
   for (const chapter_data of story_data.chapters) {
-    await utils.delete_file_if_exists(`${output_directory_path}/${chapter_data.output_file_name}.html`);
+    await utils.delete_file_if_exists(
+      `${output_directory_path}/${chapter_data.output_file_name}.html`
+    );
     if (options.show_output)
-      console.log(`Creating ${output_directory_path}/${chapter_data.output_file_name}.html`);
-    const chapter_html = generate_full_chapter_html_from_chapter_fragments(chapter_data);
-    await utils.write_raw_file(`${output_directory_path}/${chapter_data.output_file_name}.html`, chapter_html);
+      console.log(
+        `Creating ${output_directory_path}/${chapter_data.output_file_name}.html`
+      );
+    const chapter_html =
+      generate_full_chapter_html_from_chapter_fragments(chapter_data);
+    await utils.write_raw_file(
+      `${output_directory_path}/${chapter_data.output_file_name}.html`,
+      chapter_html
+    );
   }
-}
+};
