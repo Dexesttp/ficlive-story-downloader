@@ -8,7 +8,7 @@ const filepicker_url_matcher =
 /**
  * Re-generate the analyzed data including image associations for the data
  * @param {string} folder_name The short name of the story to transform (used for file and directory names)
- * @param {{ show_output: boolean }} [options] The options to use
+ * @param {{ show_output?: boolean }} [options] The options to use
  */
 module.exports.transform_images_of_analyzed_data = async function (
   folder_name,
@@ -103,7 +103,7 @@ module.exports.transform_images_of_analyzed_data = async function (
 /**
  * Re-generate the analyzed data including image associations for the data
  * @param {string} folder_name The short name of the story to transform (used for file and directory names)
- * @param {{ show_output: boolean }} [options] The options to use
+ * @param {{ show_output?: boolean }} [options] The options to use
  */
 module.exports.download_images = async function (folder_name, options) {
   options = options || { show_output: false };

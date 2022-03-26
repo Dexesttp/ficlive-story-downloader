@@ -116,7 +116,7 @@ function generate_full_chapter_html_from_chapter_fragments(chapter) {
 /**
  * Generate the HTML for a pre-analyzed story data
  * @param {string} folder_name The short name of the story to generate HTML for (used for file and folder names)
- * @param {{ show_output: boolean }} options The options to use
+ * @param {{ show_output?: boolean }} [options] The options to use
  */
 module.exports.generate_html_for_story_data = async function (
   folder_name,

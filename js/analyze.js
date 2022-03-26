@@ -104,11 +104,16 @@ function create_html_fragments_from_chapter(chapter_data, options) {
 /**
  * Generate the HTML files of a ficlive story
  * @param {string} folder_name The name of the story to download
- * @param {{ show_output?: boolean, include_polls?: boolean, include_writeins?: boolean }} [options] The options for generating the contents
+ * @param {{ include_polls?: boolean, include_writeins?: boolean }} fragment_options The options to use when generating fragments
+ * @param {{ show_output?: boolean, }} [options] The options for generating the contents
  */
-module.exports.analyze_story_data = async function (folder_name, options) {
-  options = options || {
-    show_output: false,
+module.exports.analyze_story_data = async function (
+  folder_name,
+  fragment_options,
+  options
+) {
+  options = options || { show_output: false };
+  fragment_options = fragment_options || {
     include_polls: false,
     include_writeins: false,
   };
@@ -142,7 +147,7 @@ module.exports.analyze_story_data = async function (folder_name, options) {
     );
     const html_fragments = create_html_fragments_from_chapter(
       raw_chapter_data,
-      options
+      fragment_options
     );
     const previous_file =
       index > 0
