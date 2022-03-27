@@ -70,6 +70,9 @@ function generate_full_chapter_html_from_chapter_fragments(chapter) {
                 text-align: justify;
                 line-height: 1.6;
             }
+            img {
+              max-width: 750px;
+            }
             nav.chapter_navigation {
                 display: flex;
                 align-content: center;
