@@ -9,27 +9,30 @@ const utils = require("./utils");
 function get_story_metadata_from_node_data(node_data) {
   const chapters = [];
   const extras = [];
-  for (const chapter of node_data.bm) {
-    const is_special_chapter = chapter.title.startsWith("#special ");
-    const title = is_special_chapter
-      ? chapter.title.substring("#special ".length)
-      : chapter.title;
-    const chapter_data = {
-      title: title,
-      raw_file_name: `chapter_${chapter.id}`,
-      output_file_name: is_special_chapter
-        ? `appendix${extras.length + 1}`
-        : `ch${chapters.length + 1}`,
-      is_appendix: is_special_chapter,
-    };
-    if (is_special_chapter) {
-      extras.push(chapter_data);
-    } else {
-      chapters.push(chapter_data);
+  if (node_data.bm) {
+    for (const chapter of node_data.bm) {
+      const raw_title = chapter.title || "";
+      const is_special_chapter = raw_title.startsWith("#special ");
+      const title = is_special_chapter
+        ? raw_title.substring("#special ".length)
+        : raw_title;
+      const chapter_data = {
+        title: title,
+        raw_file_name: `chapter_${chapter.id}`,
+        output_file_name: is_special_chapter
+          ? `appendix${extras.length + 1}`
+          : `ch${chapters.length + 1}`,
+        is_appendix: is_special_chapter,
+      };
+      if (is_special_chapter) {
+        extras.push(chapter_data);
+      } else {
+        chapters.push(chapter_data);
+      }
     }
   }
   return {
-    title: node_data.t,
+    title: node_data.t || "",
     chapter_metadata: chapters.concat(extras),
   };
 }
@@ -176,4 +179,31 @@ module.exports.analyze_story_data = async function (
     `${utils.paths.analyze}/${folder_name}.json`,
     story_data
   );
+};
+
+/**
+ * @param {string} folder_name
+ */
+module.exports.get_word_count_per_chapter = async function (folder_name) {
+  /** @type {utils.StoryData} */
+  const story_data = await utils.read_json_file(
+    `${utils.paths.analyze}/${folder_name}.json`
+  );
+  let total_without_appendix = 0;
+  let total_with_appendix = 0;
+  for (const chapter of story_data.chapters) {
+    let chapter_word_count = 0;
+    for (const fragment of chapter.fragments) {
+      let data = fragment;
+      data = data.replace(/<[^>]*>/g, " ");
+      data = data.replace(/\s+/g, " ");
+      data = data.trim();
+      chapter_word_count += data.split(" ").length;
+    }
+    console.log(`Chapter ${chapter.title} - word count: ${chapter_word_count}`);
+    if (!chapter.is_appendix) total_without_appendix += chapter_word_count;
+    total_with_appendix += chapter_word_count;
+  }
+  console.log(`Total without appendix: ${total_without_appendix}`);
+  console.log(`Total with appendix: ${total_with_appendix}`);
 };
