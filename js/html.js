@@ -69,6 +69,7 @@ function generate_full_chapter_html_from_chapter_fragments(chapter) {
                 max-width: 750px;
                 text-align: justify;
                 line-height: 1.6;
+                overflow-wrap: break-word;
             }
             img {
               max-width: 750px;
@@ -117,6 +118,54 @@ function generate_full_chapter_html_from_chapter_fragments(chapter) {
 }
 
 /**
+ * Generate the combined HTML page for a full story's data
+ * @param {utils.StoryData} story_data The list of chapter metadata
+ * @param {boolean} include_appendix Whether to include the appendix pages
+ * @returns {string} The generated HTML
+ */
+function generate_full_story_html(story_data, include_appendix) {
+  const data = story_data.chapters
+    .filter(c => !c.is_appendix || include_appendix)
+    .map(c => [
+      `<h2>${c.title}</h2>`,
+      ...c.fragments.map((f) => `<section>${f}</section>`)
+    ])
+    .reduce((p, v) => p.concat(v), []);
+  return `<!DOCTYPE html>
+<html>
+    <head>
+        <title>${story_data.title}</title>
+        <meta charset="utf-8">
+        <style>
+            body {
+                color: #ddd;
+                background-color: #111;
+                font-size: 22px;
+            }
+            body > article {
+                margin: 20px auto;
+                max-width: 750px;
+                text-align: justify;
+                line-height: 1.6;
+            }
+            img {
+              max-width: 750px;
+            }
+            a, a:visited {
+                color: #ddd;
+            }
+        </style>
+    </head>
+    <body>
+        <article>
+            <h1>${story_data.title}</h1>
+            ${data.join("\n")}
+        </article>
+    </body>
+</html>`;
+}
+
+/**
  * Generate the HTML for a pre-analyzed story data
  * @param {string} folder_name The short name of the story to generate HTML for (used for file and folder names)
  * @param {{ show_output?: boolean }} [options] The options to use
@@ -155,4 +204,30 @@ module.exports.generate_html_for_story_data = async function (
       chapter_html
     );
   }
+};
+
+/**
+ * Generate the combined HTML file for a pre-analyzed story data
+ * @param {string} folder_name The short name of the story to generate HTML for (used for file and folder names)
+ * @param {{ show_output?: boolean }} [options] The options to use
+ */
+module.exports.generate_combined_html_for_story_data = async function (
+  folder_name,
+  options
+) {
+  options = options || { show_output: false };
+
+  /** @type {utils.StoryDataWithImages} */
+  const story_data = await utils.read_json_file(
+    `${utils.paths.images}/${folder_name}.json`
+  );
+
+  const output_directory_path = `${utils.paths.output}/${folder_name}`;
+  await utils.ensure_directory(output_directory_path);
+
+  const index_html = generate_full_story_html(story_data, false);
+  await utils.delete_file_if_exists(`${output_directory_path}/single-page.html`);
+  if (options.show_output)
+    console.log(`Creating ${output_directory_path}/single-page.html`);
+  await utils.write_raw_file(`${output_directory_path}/single-page.html`, index_html);
 };
