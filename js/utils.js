@@ -21,7 +21,7 @@ const https = require("https");
  * @typedef {{ title: string, chapter_metadata: ChapterMetadata[] }} StoryMetadata
  * @typedef {{ title: string, is_appendix: boolean, raw_file_name: string, output_file_name: string, previous_file: string, next_file: string, fragments: string[] }} ChapterData
  * @typedef {{ title: string, chapters: ChapterData[] }} StoryData
- * @typedef {{ url: string, new_name: string }} ImageData
+ * @typedef {{ original_urls: string[], url: string, new_name: string }} ImageData
  * @typedef {{ title: string, chapters: ChapterData[], images: ImageData[] }} StoryDataWithImages
  */
 
