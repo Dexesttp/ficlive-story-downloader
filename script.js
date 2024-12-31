@@ -9,7 +9,7 @@ const story_list = [
 ];
 
 (async () => {
-  const option = { show_output: true };
+  const option = { show_output: true, force_download_latest: true, force_download_special: false };
   for (const story of story_list) {
     const folder_name = story.folder_name;
     const node_id = story.node_id;

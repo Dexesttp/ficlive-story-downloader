@@ -189,8 +189,8 @@ module.exports.get_word_count_per_chapter = async function (folder_name) {
   const story_data = await utils.read_json_file(
     `${utils.paths.analyze}/${folder_name}.json`
   );
-  let total_without_appendix = 0;
-  let total_with_appendix = 0;
+  /** @type {Array<{ title: string, word_count: number, is_appendix: boolean, raw_file_name: string }>} */
+  const words_per_chapter = [];
   for (const chapter of story_data.chapters) {
     let chapter_word_count = 0;
     for (const fragment of chapter.fragments) {
@@ -200,10 +200,21 @@ module.exports.get_word_count_per_chapter = async function (folder_name) {
       data = data.trim();
       chapter_word_count += data.split(" ").length;
     }
-    console.log(`Chapter ${chapter.title} - word count: ${chapter_word_count}`);
-    if (!chapter.is_appendix) total_without_appendix += chapter_word_count;
-    total_with_appendix += chapter_word_count;
+    words_per_chapter.push({
+      title: chapter.title,
+      word_count: chapter_word_count,
+      is_appendix: chapter.is_appendix,
+      raw_file_name: chapter.raw_file_name,
+    });
   }
-  console.log(`Total without appendix: ${total_without_appendix}`);
-  console.log(`Total with appendix: ${total_with_appendix}`);
+  console.log("Per-chapter word count:");
+  for (const chapter of words_per_chapter) {
+    console.log(`   [${chapter.word_count.toString().padStart(5)} words] ${chapter.title} - ${chapter.raw_file_name}`);
+  }
+  const total_main = words_per_chapter
+    .filter((c) => !c.is_appendix)
+    .reduce((p, v) => p + v.word_count, 0);
+  console.log(`Total without appendix: ${total_main}`);
+  const total_wth = words_per_chapter.reduce((p, v) => p + v.word_count, 0);
+  console.log(`Total with appendix: ${total_wth}`);
 };
